@@ -1,21 +1,156 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>FFT</title>
+    <url>/2023/03/22/FFT/</url>
+    <content><![CDATA[<h1 id="前置知识">前置知识</h1>
+<p><strong>多项式的表示</strong>：一般来说，多项式的表示方法有点表示和系数表示两种。</p>
+<p>系数表示法：一个<span
+class="math inline">\(n\)</span>次多项式可以由<span
+class="math inline">\(n+1\)</span>个系数唯一确定，也即<span
+class="math inline">\(f(x)=\sum_{i=0}^{n}a_ix^{i}\)</span>。</p>
+<p>点表示法：一个<span
+class="math inline">\(n\)</span>次多项式可以由<span
+class="math inline">\(n+1\)</span>个各不相同的点唯一确定，设这<span
+class="math inline">\(n+1\)</span>个点的坐标为<span
+class="math inline">\((x_0,f(x_0)),(x_1,f(x_1)),\cdots,(x_n,f(x_n))\)</span>，代入表达式可得方程组：
+<span class="math display">\[ \begin{cases}
+a_0+a_1x_0+\cdots+a_nx_0^{n}=f(x_0)\\
+a_0+a_1x_1+\cdots+a_nx_1^{n}=f(x_1)\\ \cdots\\
+a_0+a_1x_n+\cdots+a_nx_n^{n}=f(x_n)\end{cases}\]</span>
+其系数行列式的值由范德蒙行列式可求得： <span
+class="math display">\[\begin{vmatrix}1 &amp; x_0 &amp; \dots
+&amp;x_0^{n}\\ 1 &amp; x_1 &amp; \dots &amp; x_1^{n} \\ \vdots &amp;
+\vdots &amp; \ddots &amp; \vdots \\ 1 &amp; x_n &amp; \dots &amp;
+x_n^{n} \end{vmatrix} = \prod_{0\leq i\leq j \leq n}(x_i-x_j)\neq
+0\]</span> 可知多项式的系数被唯一确定。</p>
+<p><strong>复数的表示与运算</strong>：一个复数可以表示为<span
+class="math inline">\(z=a+bi(a,b\in
+\mathbb{R})\)</span>，对应复平面上一点<span
+class="math inline">\(P(a,b)\)</span>。其模长<span
+class="math inline">\(|z|=\sqrt {a^{2}+b^{2}}\)</span>,当<span
+class="math inline">\(z\neq0\)</span>时，定义向量<span
+class="math inline">\(\overrightarrow{OP}\)</span>与<span
+class="math inline">\(x\)</span>轴正向夹角为辐角<span
+class="math inline">\(\theta\)</span>，则复数也可表示为<span
+class="math inline">\(z=|z|(\cos\theta+i\sin\theta)\)</span>。</p>
+<p>复数的加（减）法：设<span
+class="math inline">\(z_1=a_1+ib_1\)</span>，<span
+class="math inline">\(z_2=a_2+ib_2\)</span>，则<span
+class="math inline">\(z_1\pm z_2=(a_1\pm a_2)+i(b_1 \pm
+b_2)\)</span>。</p>
+<p>复数的乘法：设<span
+class="math inline">\(z_1=a_1+ib_1\)</span>，<span
+class="math inline">\(z_2=a_2+ib_2\)</span>，则<span
+class="math inline">\(z_1z_2=(a_1a_2-b_1b_2)+i(a_1b_2+a_2b_1)\)</span>。复数的乘法也可以理解为模长相乘，辐角相加。</p>
+<p><strong>单位根</strong>：考虑<span
+class="math inline">\(x^{n}=1\)</span>在复数域上的<span
+class="math inline">\(n\)</span>个解，在单位圆上将圆从<span
+class="math inline">\((1,0)\)</span>开始等分成n份，这<span
+class="math inline">\(n\)</span>个点均满足上述方程，将它们对应的复数记为<span
+class="math inline">\(\omega_n^{i}(1 \leq i \leq
+n-1)\)</span>，且有<span
+class="math inline">\(\omega_n^{i}=\cos{\frac{2\pi
+i}{n}}+i\sin{\frac{2\pi i}{n}}\)</span>。</p>
+<p>单位根的性质：1）<span
+class="math inline">\(\omega_{2n}^{2k}=\omega_n^{k}\)</span>；</p>
+<p>2）<span
+class="math inline">\(\omega_n^{k+\frac{n}{2}}=-\omega_n^{k}\)</span>；</p>
+<p>3）<span
+class="math inline">\(\omega_n^{0}=\omega_n^{n}=1\)</span>；</p>
+<h1 id="fft快速傅里叶变换">FFT（快速傅里叶变换）</h1>
+<p>FFT是用来解决两个多项式相乘的一种算法，FFT大致思路如下：先将两个多项式写成点表示法，则所求多项式的点值等于两个多项式点值的乘积，再将其重新转化为系数表示法。</p>
+<p><strong>将系数表示法转化为点表示法</strong></p>
+<p>取<span class="math inline">\(n\)</span>为2的次幂，设<span
+class="math inline">\(A(x)=a_0+a_1x+\cdots+a_{n-1}x^{n-1}\)</span>，将下标按奇偶性分开，则</p>
+<p><span
+class="math inline">\(A(x)=(a_0+a_2x^{2}+\cdots+a_{n-2}x^{n-2})+(a_1x+a_3x^{3}+\dots+a_{n-1}x^{n-1})\)</span></p>
+<p><span
+class="math inline">\(=(a_0+a_2x^{2}+\cdots+a_{n-2}x^{n-2})+x(a_1+a_3x^{2}+\cdots+a_{n-1}x^{n-2})\)</span></p>
+<p>令<span
+class="math inline">\(A_1(x)=a_0+a_2x+\cdots+a_{n-2}x^{\frac{n}{2}-1}\)</span>，<span
+class="math inline">\(A_2(x)=a_1+a_3x+\cdots+a_{n-1}x^{\frac{n}{2}-1}\)</span></p>
+<p>则<span
+class="math inline">\(A(x)=A_1(x^{2})+xA_2(x^{2})\)</span>，将<span
+class="math inline">\(\omega_n^{k}(k&lt;\frac{n}{2})\)</span>代入得：</p>
+<p><span
+class="math inline">\(A(\omega_n^{k})=A_1(\omega_n^{2k})+xA_2(\omega_n^{2k})=A_1(\omega_\frac{n}{2}^{k})+\omega_n^{k}A_2(\omega_\frac{n}{2}^{k})\)</span></p>
+<p><span
+class="math inline">\(A(\omega_n^{k+\frac{n}{2}})=A_1(\omega_n^{2k+n})+xA_2(\omega_n^{2k+n})=A_1(\omega_\frac{n}{2}^{k})-\omega_n^{k}A_2(\omega_\frac{n}{2}^{k})\)</span></p>
+<p>可以发现两部分只有后半部分的符号不一样，则若已知<span
+class="math inline">\(A_1(\omega_\frac{n}{2}^{k})\)</span>与<span
+class="math inline">\(A_2(\omega_\frac{n}{2}^{k})\)</span>可以求得<span
+class="math inline">\(A(\omega_n^{k})\)</span>和<span
+class="math inline">\(A(\omega_n^{k+\frac{n}{2}})\)</span>，从而我们可以使用递归分治的方式求得<span
+class="math inline">\(A(\omega_n^{k})(0\leq k\leq
+n-1)\)</span>，时间复杂度<span
+class="math inline">\(O(nlogn)\)</span>。</p>
+<p><strong>将点表示法重新转化为系数表示法</strong></p>
+<p>已知<span class="math inline">\(n+1\)</span>个点的坐标<span
+class="math inline">\((x_0,A(x_0)),(x_1,A(x_1)),\cdots,(x_{n-1},A(x_{n-1}))\)</span>，其中<span
+class="math inline">\(x_i=\omega_n^{i}(0\leq i\leq
+n-1)\)</span>，先证明：<span class="math display">\[
+a_k=\frac{1}{n}\sum_{i=0}^{n-1}A(\omega_n^{i})(\omega_n^{-k})^i\]</span>证明：</p>
+<p><span
+class="math display">\[\sum_{i=0}^{n-1}A(\omega_n^{i})(\omega_n^{-k})^i\]</span>
+<span
+class="math display">\[=\sum_{i=0}^{n-1}(\sum_{j=0}^{n-1}a_j(\omega_n^i)^j)(\omega_n^{-k})^i\]</span>
+<span
+class="math display">\[=\sum_{i=0}^{n-1}(\sum_{j=0}^{n-1}a_j(\omega_n^{j-k})^i)\]</span>
+<span
+class="math display">\[=\sum_{j=0}^{n-1}a_j(\sum_{i=0}^{n-1}(\omega_n^{j-k})^i)\tag{1}\]</span></p>
+<p>记<span
+class="math inline">\(S(x)=1+x+x^2+\cdots+x^{n-1}\)</span>，考虑<span
+class="math inline">\(S(\omega_n^{k})\)</span>：</p>
+<p>1）若<span class="math inline">\(k=0\)</span>，<span
+class="math inline">\(S(\omega_n^{k})=n\)</span>；</p>
+<p>2）若<span class="math inline">\(k\neq 0\)</span>，<span
+class="math inline">\(S(\omega_n^{k})=\omega_n^0+\omega_n^k+\cdots+\omega_n^{(n-1)k}\)</span>，<span
+class="math inline">\(\omega_n^{k}S(\omega_n^{k})=\omega_n^k+\omega_n^{2k}+\cdots+\omega_n^{nk}\)</span>，两式相减可得：<span
+class="math inline">\((1-\omega_n^k)S(\omega_n^k)=0\)</span>，则<span
+class="math inline">\(S(\omega_n^{k})=0\)</span>。</p>
+<p>从而<span class="math inline">\((1)=na_k\)</span>，问题得证。</p>
+<p>令<span
+class="math inline">\(B(x)=\sum_{i=0}^{n-1}A(\omega_n^{i})x^i\)</span>，则<span
+class="math inline">\(a_k=\frac{1}{n}B(\omega_n^{-k})\)</span>，问题又转化为了从系数表示法转化为点表示法。</p>
+<h1 id="迭代优化">迭代优化</h1>
+<p>注意到最终的位置为其初始位置二进制翻转后得到的，则可以将最终的位置处理出来后，向上迭代处理就可以得到最初的序列。</p>
+<h1 id="代码">代码</h1>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;cmath&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="type">const</span> <span class="type">double</span> pi = <span class="built_in">acos</span>(<span class="number">-1</span>);</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Complex</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">double</span> x,y;</span><br><span class="line">    Complex <span class="keyword">operator</span>+ (<span class="type">const</span> Complex&amp; t)<span class="type">const</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;x + t.x,y + t.y&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    Complex <span class="keyword">operator</span>- (<span class="type">const</span> Complex&amp; t)<span class="type">const</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;x - t.x,y - t.y&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    Complex <span class="keyword">operator</span>* (<span class="type">const</span> Complex&amp; t)<span class="type">const</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;x * t.x - y * t.y,x * t.y + y * t.x&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;a[<span class="number">300010</span>],b[<span class="number">300010</span>];</span><br><span class="line"><span class="type">int</span> n,m,bit,tot,pos[<span class="number">300010</span>];</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fft</span><span class="params">(Complex a[],<span class="type">int</span> mode)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(i &lt; pos[i])</span><br><span class="line">        <span class="built_in">swap</span>(a[i],a[pos[i]]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> mid = <span class="number">1</span>;mid &lt; tot;mid = mid * <span class="number">2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">auto</span> wi = <span class="built_in">Complex</span>(&#123;<span class="built_in">cos</span>(pi / mid),mode * <span class="built_in">sin</span>(pi / mid)&#125;);</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i = i + mid * <span class="number">2</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">auto</span> w0 = <span class="built_in">Complex</span>(&#123;<span class="number">1</span>,<span class="number">0</span>&#125;);</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>;j &lt; mid;j++)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">auto</span> tx = a[i + j],ty = w0 * a[i + j + mid];</span><br><span class="line">                a[i + j] = tx + ty,a[i + j + mid] = tx - ty;</span><br><span class="line">                w0 = w0 * wi;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d%d&quot;</span>,&amp;n,&amp;m);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt;= n;i++)</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%lf&quot;</span>,&amp;a[i].x);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt;= m;i++)</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%lf&quot;</span>,&amp;b[i].x);</span><br><span class="line">    <span class="keyword">while</span>((<span class="number">1</span> &lt;&lt; bit) &lt; n + m + <span class="number">1</span>)</span><br><span class="line">    bit++;</span><br><span class="line">    tot = <span class="number">1</span> &lt;&lt; bit;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i++)</span><br><span class="line">    pos[i] = (pos[i &gt;&gt; <span class="number">1</span>] &gt;&gt; <span class="number">1</span>) | ((i &amp; <span class="number">1</span>) &lt;&lt; (bit - <span class="number">1</span>));</span><br><span class="line">    <span class="built_in">fft</span>(a,<span class="number">1</span>),<span class="built_in">fft</span>(b,<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i++)</span><br><span class="line">    a[i] = a[i] * b[i];</span><br><span class="line">    <span class="built_in">fft</span>(a,<span class="number">-1</span>);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt;= n + m;i++)</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d &quot;</span>,(<span class="type">int</span>)(a[i].x / tot + <span class="number">0.5</span>));</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>多项式</category>
+      </categories>
+      <tags>
+        <tag>算法学习</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/2023/03/19/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
+first post. Check <a href="https://hexo.io/docs/">documentation</a> for
+more info. If you get any problems when using Hexo, you can find the
+answer in <a
+href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
+you can ask me on <a
+href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="run-server">Run server</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
 <p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h3 id="generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
   </entry>
 </search>
