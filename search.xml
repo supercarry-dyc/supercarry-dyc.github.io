@@ -1,6 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>2020澳门站题解报告</title>
+    <url>/2023/03/27/2020%E6%BE%B3%E9%97%A8%E7%AB%99%E9%A2%98%E8%A7%A3%E6%8A%A5%E5%91%8A/</url>
+    <content><![CDATA[<h1 id="a">A</h1>
+<h3 id="题意">题意</h3>
+<p>给定<span class="math inline">\(n\)</span>个加速器，第<span
+class="math inline">\(i\)</span>个加速器的加速系数为<span
+class="math inline">\(a_i\)</span>，最初的速度是<span
+class="math inline">\(0\)</span>，经过一个加速系数为<span
+class="math inline">\(A\)</span>的加速器后速度变为<span
+class="math inline">\(A(v+1)\)</span>，这<span
+class="math inline">\(n\)</span>个加速器的顺序是随机的，求经过所有加速器后最终速度的期望。</p>
+<p>题目传送门：<a href="https://codeforces.com/gym/103119/problem/A"
+class="uri">https://codeforces.com/gym/103119/problem/A</a></p>
+<h3 id="数据范围">数据范围</h3>
+<p>多组数据输入，数据组数不多于<span
+class="math inline">\(100000\)</span>组</p>
+<p><span class="math inline">\(\sum n \leq 100000,1\leq a_i\leq
+10^{9}\)</span></p>
+<h3 id="题解">题解</h3>
+<p>对于给定的一个序列<span
+class="math inline">\(a_1,a_2,\cdots,a_n\)</span>，最终的速度<span
+class="math display">\[((\cdots((a_1+1)a_2+1)\cdots+1)a_{n-1}+1)a_n\]</span>
+<span class="math display">\[=a_1a_2\cdots a_n+a_2a_3\cdots
+a_n+\cdots+a_{n-1}a_n+a_n\]</span> 对于任意<span
+class="math inline">\(k\)</span>个数的乘积，考虑其出现的次数，这<span
+class="math inline">\(k\)</span>个数的排列有<span
+class="math inline">\(k!\)</span>种，剩余<span
+class="math inline">\((n-k)\)</span>个数排列有<span
+class="math inline">\((n-k)!\)</span>种，又总的排列有<span
+class="math inline">\(n!\)</span>种，设<span
+class="math inline">\(S_k\)</span>为<span
+class="math inline">\(n\)</span>个数中选取<span
+class="math inline">\(k\)</span>个数的所有集合，则最终的答案为： <span
+class="math display">\[\sum_{k=1}^{n}\frac{k!(n-k)!}{n!} \sum_{p \in
+S_k}\prod_{i=1}^{k}a_{p_i}\]</span> 为了计算<span
+class="math inline">\(f(k)=\sum_{p \in
+S_k}\prod_{i=1}^{k}a_{p_i}\)</span>，构造多项式<span
+class="math inline">\(\prod_{i=1}^{n}(1+a_ix)\)</span>，则<span
+class="math inline">\(f(k)\)</span>为该多项式<span
+class="math inline">\(k\)</span>次项的系数，在计算多项式的系数时，使用NTT和分治法进行优化，时间复杂度<span
+class="math inline">\(O(nlog^2n)\)</span>。</p>
+<h3 id="代码">代码</h3>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> mod 998244353</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="type">int</span> pos[<span class="number">300010</span>];</span><br><span class="line"><span class="type">long</span> <span class="type">long</span> a[<span class="number">300010</span>],b[<span class="number">300010</span>],c[<span class="number">300010</span>],x[<span class="number">300010</span>];</span><br><span class="line"><span class="type">long</span> <span class="type">long</span> fac[<span class="number">300010</span>],ifac[<span class="number">300010</span>];</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> rt = <span class="number">3</span>;</span><br><span class="line"><span class="function"><span class="type">long</span> <span class="type">long</span> <span class="title">quickpow</span><span class="params">(<span class="type">long</span> <span class="type">long</span> a,<span class="type">long</span> <span class="type">long</span> b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> ans = <span class="number">1</span>,base = a;</span><br><span class="line">    <span class="keyword">while</span>(b)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(b &amp; <span class="number">1</span>)</span><br><span class="line">        ans = ans * base % mod;</span><br><span class="line">        base = base * base % mod;</span><br><span class="line">        b = b &gt;&gt; <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ntt</span><span class="params">(<span class="type">long</span> <span class="type">long</span> a[],<span class="type">int</span> mode,<span class="type">int</span> tot)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i++)</span><br><span class="line">    a[i] = a[i] % mod;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(i &lt; pos[i])</span><br><span class="line">        <span class="built_in">swap</span>(a[i],a[pos[i]]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> mid = <span class="number">1</span>;mid &lt; tot;mid &lt;&lt;= <span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">long</span> <span class="type">long</span> w1;</span><br><span class="line">        w1 = <span class="built_in">quickpow</span>(rt,(mod - <span class="number">1</span>) / (mid &lt;&lt; <span class="number">1</span>));</span><br><span class="line">        <span class="keyword">if</span>(mode == <span class="number">-1</span>)</span><br><span class="line">        w1 = <span class="built_in">quickpow</span>(w1,mod - <span class="number">2</span>);</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i = i + mid * <span class="number">2</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="type">long</span> <span class="type">long</span> w = <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>;j &lt; mid;j++)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="type">long</span> <span class="type">long</span> tx = a[i + j],ty = w * a[i + j + mid] % mod;</span><br><span class="line">                a[i + j] = (tx + ty) % mod,a[i + j + mid] = (tx - ty + mod) % mod;</span><br><span class="line">                w = w * w1 % mod;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> inv = <span class="built_in">quickpow</span>(tot,mod - <span class="number">2</span>);</span><br><span class="line">    <span class="keyword">if</span>(mode == <span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i++)</span><br><span class="line">        a[i] = a[i] * inv % mod;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">mul</span><span class="params">(<span class="type">long</span> <span class="type">long</span> a[],<span class="type">long</span> <span class="type">long</span> b[],<span class="type">long</span> <span class="type">long</span> c[],<span class="type">int</span> n,<span class="type">int</span> m)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> dig = <span class="number">0</span>,tot;</span><br><span class="line">    <span class="keyword">while</span>((<span class="number">1</span> &lt;&lt; dig) &lt; n + m + <span class="number">1</span>)</span><br><span class="line">    dig++;</span><br><span class="line">    tot = <span class="number">1</span> &lt;&lt; dig;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = n + <span class="number">1</span>;i &lt; tot;i++)</span><br><span class="line">    a[i] = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = m + <span class="number">1</span>;i &lt; tot;i++)</span><br><span class="line">    b[i] = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt; tot;i++)</span><br><span class="line">    pos[i] = (pos[i &gt;&gt; <span class="number">1</span>] &gt;&gt; <span class="number">1</span>) | ((i &amp; <span class="number">1</span>) &lt;&lt; (dig - <span class="number">1</span>));</span><br><span class="line">    <span class="built_in">ntt</span>(a,<span class="number">1</span>,tot),<span class="built_in">ntt</span>(b,<span class="number">1</span>,tot);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; tot;i++)</span><br><span class="line">    c[i] = a[i] * b[i] % mod;</span><br><span class="line">    <span class="built_in">ntt</span>(c,<span class="number">-1</span>,tot);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function">vector&lt;<span class="type">long</span> <span class="type">long</span>&gt; <span class="title">solve</span><span class="params">(<span class="type">int</span> l,<span class="type">int</span> r)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(l == r)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="number">1</span>,x[l]&#125;;</span><br><span class="line">    vector&lt;<span class="type">long</span> <span class="type">long</span>&gt; v;</span><br><span class="line">    <span class="type">int</span> mid = l + (r - l) / <span class="number">2</span>;</span><br><span class="line">    <span class="type">int</span> l1 = mid - l + <span class="number">1</span>,l2 = r - mid;</span><br><span class="line">    vector&lt;<span class="type">long</span> <span class="type">long</span>&gt; v1 = <span class="built_in">solve</span>(l,mid),v2 = <span class="built_in">solve</span>(mid + <span class="number">1</span>,r);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt;= l1;i++)</span><br><span class="line">    a[i] = v1[i];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt;= l2;i++)</span><br><span class="line">    b[i] = v2[i];</span><br><span class="line">    <span class="built_in">mul</span>(a,b,c,l1,l2);</span><br><span class="line">    v.<span class="built_in">resize</span>(l1 + l2 + <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt;= l1 + l2;i++)</span><br><span class="line">    v[i] = c[i];</span><br><span class="line">    <span class="keyword">return</span> v;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">int</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    fac[<span class="number">0</span>] = <span class="number">1</span>,ifac[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= n;i++)</span><br><span class="line">    fac[i] = fac[i - <span class="number">1</span>] * i % mod;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> t,n;</span><br><span class="line">    cin &gt;&gt; t;</span><br><span class="line">    <span class="built_in">init</span>(<span class="number">300000</span>);</span><br><span class="line">    <span class="keyword">while</span>(t--)</span><br><span class="line">    &#123;</span><br><span class="line">        cin &gt;&gt; n;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= n;i++)</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%lld&quot;</span>,&amp;x[i]);</span><br><span class="line">        vector&lt;<span class="type">long</span> <span class="type">long</span>&gt; v = <span class="built_in">solve</span>(<span class="number">1</span>,n);</span><br><span class="line">        <span class="type">long</span> <span class="type">long</span> ans = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= n;i++)</span><br><span class="line">        ans = (ans + v[i] * fac[i] % mod * fac[n - i] % mod) % mod;</span><br><span class="line">        ans = ans * <span class="built_in">quickpow</span>(fac[n],mod - <span class="number">2</span>) % mod;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%lld\n&quot;</span>,ans);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>比赛题解</category>
+      </categories>
+      <tags>
+        <tag>题解报告</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2023/03/19/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
+first post. Check <a href="https://hexo.io/docs/">documentation</a> for
+more info. If you get any problems when using Hexo, you can find the
+answer in <a
+href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
+you can ask me on <a
+href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="run-server">Run server</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>FFT</title>
     <url>/2023/03/22/FFT/</url>
     <content><![CDATA[<h1 id="前置知识">前置知识</h1>
@@ -124,33 +204,5 @@ class="math inline">\(a_k=\frac{1}{n}B(\omega_n^{-k})\)</span>，问题又转化
       <tags>
         <tag>算法学习</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2023/03/19/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
-first post. Check <a href="https://hexo.io/docs/">documentation</a> for
-more info. If you get any problems when using Hexo, you can find the
-answer in <a
-href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
-you can ask me on <a
-href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="quick-start">Quick Start</h2>
-<h3 id="create-a-new-post">Create a new post</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="run-server">Run server</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="generate-static-files">Generate static files</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
   </entry>
 </search>
