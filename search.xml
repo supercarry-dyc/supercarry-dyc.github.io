@@ -89,6 +89,66 @@ class="math inline">\(0\)</span>或<span
 class="math inline">\(1\)</span>。</p>
 <h3 id="代码">代码</h3>
 <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="type">int</span> f[<span class="number">10</span>] = &#123;<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">2</span>,<span class="number">1</span>&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> t,n,k;</span><br><span class="line">    cin &gt;&gt; t;</span><br><span class="line">    <span class="keyword">while</span>(t--)</span><br><span class="line">    &#123;</span><br><span class="line">        cin &gt;&gt; n &gt;&gt; k;</span><br><span class="line">        <span class="keyword">while</span>(n != <span class="number">0</span> &amp;&amp; k &gt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="type">int</span> tmp = n;</span><br><span class="line">            n = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">while</span>(tmp &gt; <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                n += f[tmp % <span class="number">10</span>];</span><br><span class="line">                tmp /= <span class="number">10</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            k--;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(k == <span class="number">0</span>)</span><br><span class="line">        cout &lt;&lt; n &lt;&lt; endl;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(k != <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(k % <span class="number">2</span> == <span class="number">0</span>)</span><br><span class="line">            cout &lt;&lt; <span class="number">0</span> &lt;&lt; endl;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            cout &lt;&lt; <span class="number">1</span> &lt;&lt; endl;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="c.-flippy-sequence">C. Flippy Sequence</h2>
+<h3 id="题意-1">题意</h3>
+<p>给定两个长度为<span class="math inline">\(n\)</span>的<span
+class="math inline">\(01\)</span>串<span
+class="math inline">\(s\)</span>和<span
+class="math inline">\(t\)</span>，一次操作为选取两个正整数<span
+class="math inline">\(l\)</span>和<span class="math inline">\(r(1 \leq l
+\leq r \leq n)\)</span>，将<span
+class="math inline">\(s_i\)</span>变为<span
+class="math inline">\(1-s_i(l \leq i\leq
+r)\)</span>，在进行两次这样的操作后两串相等，求可行的方案数。</p>
+<p>设第一次操作取的数为<span class="math inline">\(l_1\)</span>和<span
+class="math inline">\(r_1\)</span>，第二次取的数为<span
+class="math inline">\(l_2\)</span>和<span
+class="math inline">\(r_2\)</span>，两个方案不同当且仅当至少有其中一个不相同。</p>
+<h3 id="数据范围-1">数据范围</h3>
+<p>多组数据输入，对每组数据<span class="math inline">\(n\leq
+10^6\)</span>，<span class="math inline">\(n\)</span>的总和不超过<span
+class="math inline">\(10^7\)</span>。</p>
+<h3 id="题解-1">题解</h3>
+<p>记<span class="math inline">\(s\)</span>与<span
+class="math inline">\(t\)</span>不相同的互不相交的区间个数为<span
+class="math inline">\(sit\)</span>，对<span
+class="math inline">\(sit\)</span>的大小进行分类讨论：</p>
+<p>1）若<span class="math inline">\(sit=0\)</span>，也即<span
+class="math inline">\(s\)</span>和<span
+class="math inline">\(t\)</span>最初就相同，此时选取两个相同的<span
+class="math inline">\(l\)</span>和<span
+class="math inline">\(r\)</span>即可，共有<span
+class="math inline">\(C_n^2+n\)</span>种方案。</p>
+<p>2）若<span class="math inline">\(sit=1\)</span>，设从<span
+class="math inline">\(i\)</span>到<span
+class="math inline">\(j\)</span>两个串不同，可以选取的方案如下：</p>
+<p>1.<span class="math inline">\((x,i-1),(x,j)(1\leq
+x&lt;i)\)</span>，共有<span
+class="math inline">\(i-1\)</span>种方案。</p>
+<p>2.<span class="math inline">\((i,x),(x+1,j)(i\leq
+x&lt;j)\)</span>，共有<span
+class="math inline">\(j-i\)</span>种方案。</p>
+<p>3.<span class="math inline">\((i,x),(j+1,x)(j&lt;x\leq
+n)\)</span>，共有<span class="math inline">\(n-j\)</span>种方案。</p>
+<p>又两次操作可以交换，共有<span
+class="math inline">\(2(n-1)\)</span>种方案。</p>
+<p>3）若<span class="math inline">\(sit=2\)</span>，设从<span
+class="math inline">\(i_1\)</span>到<span
+class="math inline">\(j_1\)</span>，从<span
+class="math inline">\(i_2\)</span>到<span
+class="math inline">\(j_2\)</span>两个串不同<span
+class="math inline">\(i_1\leq j_1 \leq i_2 \leq
+j_2\)</span>，可以选取的方案如下：</p>
+<p>1.<span class="math inline">\((i_1,j_1),(i_2,j_2)\)</span></p>
+<p>2.<span class="math inline">\((i_1,j_2),(i_2+1,j_1-1)\)</span></p>
+<p>3.<span class="math inline">\((i_1,i_2-1),(j_1+1,j_2)\)</span></p>
+<p>两次操作依然可以交换，共有<span
+class="math inline">\(6\)</span>种方案。</p>
+<p>4）若<span
+class="math inline">\(sit\geq3\)</span>，可知两次操作不可能使得两串相等，所以有<span
+class="math inline">\(0\)</span>种方案。</p>
+<h3 id="代码-1">代码</h3>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="type">char</span> s[<span class="number">1000010</span>],t[<span class="number">1000010</span>];</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> T;</span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> ans,n;</span><br><span class="line">    cin &gt;&gt; T;</span><br><span class="line">    <span class="keyword">while</span>(T--)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%lld&quot;</span>,&amp;n);</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%s%s&quot;</span>,s,t);</span><br><span class="line">        vector&lt;<span class="type">int</span>&gt; v;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(s[i] != t[i])</span><br><span class="line">            v.<span class="built_in">push_back</span>(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> sit = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt; v.<span class="built_in">size</span>();i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(v[i] != v[i - <span class="number">1</span>] + <span class="number">1</span>)</span><br><span class="line">            sit++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(v.<span class="built_in">empty</span>())</span><br><span class="line">        ans = n * (n + <span class="number">1</span>) / <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(sit == <span class="number">0</span>)</span><br><span class="line">        ans = <span class="number">2</span> * (n - <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(sit == <span class="number">1</span>)</span><br><span class="line">        ans = <span class="number">6</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        ans = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%lld\n&quot;</span>,ans);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>比赛题解</category>
